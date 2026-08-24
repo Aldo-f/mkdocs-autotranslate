@@ -9,7 +9,7 @@ mkdocs = pytest.importorskip("mkdocs")
 
 from mkdocs.structure.files import Files
 
-from mkdocs_blog_autotranslate.plugin import BlogAutotranslatePlugin
+from mkdocs_autotranslate.plugin import AutotranslatePlugin
 
 
 def make_post(dir_path: Path, slug: str, title="T"):
@@ -20,7 +20,7 @@ def make_post(dir_path: Path, slug: str, title="T"):
 
 
 def build_plugin(**opts):
-    p = BlogAutotranslatePlugin()
+    p = AutotranslatePlugin()
     errors, warnings = p.load_config({} if not opts else opts)
     assert not errors and not warnings
     return p
@@ -44,7 +44,7 @@ def test_in_sync_is_silent(docs, caplog):
     make_post(d / "en" / "blog" / "posts", "same")
     make_post(d / "nl" / "blog" / "posts", "same")
     p = build_plugin()
-    with caplog.at_level(logging.INFO, logger="mkdocs.plugins.blog_autotranslate"):
+    with caplog.at_level(logging.INFO, logger="mkdocs.plugins.autotranslate"):
         p.on_files(fake_files(), config=cfg)
     assert "in sync" in caplog.text
 
@@ -54,7 +54,7 @@ def test_report_mode_logs_warning_not_raise(docs, caplog):
     make_post(d / "en" / "blog" / "posts", "only-en")
     p = build_plugin()  # default mode=report
     result = None
-    with caplog.at_level(logging.WARNING, logger="mkdocs.plugins.blog_autotranslate"):
+    with caplog.at_level(logging.WARNING, logger="mkdocs.plugins.autotranslate"):
         result = p.on_files(fake_files(), config=cfg)
     assert isinstance(result, Files)          # build continues
     assert "1 untranslated post(s)" in caplog.text
@@ -77,7 +77,7 @@ def test_drafts_skipped_and_logged(docs, caplog):
         '---\ntitle: WIP\ndate: 2026-01-01\ndraft: true\n---\n\nx\n',
         encoding="utf-8")
     p = build_plugin(mode="strict")           # draft must NOT trip strict
-    with caplog.at_level(logging.INFO, logger="mkdocs.plugins.blog_autotranslate"):
+    with caplog.at_level(logging.INFO, logger="mkdocs.plugins.autotranslate"):
         result = p.on_files(fake_files(), config=cfg)
     assert isinstance(result, Files)
     assert "skipping draft en/blog/posts/wip-draft.md" in caplog.text
@@ -86,7 +86,7 @@ def test_drafts_skipped_and_logged(docs, caplog):
 def test_single_language_warns_and_noop(docs, caplog):
     d, cfg = docs
     p = build_plugin(languages=["en"])
-    with caplog.at_level(logging.WARNING, logger="mkdocs.plugins.blog_autotranslate"):
+    with caplog.at_level(logging.WARNING, logger="mkdocs.plugins.autotranslate"):
         res = p.on_files(fake_files(), config=cfg)
     assert isinstance(res, Files)
     assert "needs >= 2 languages" in caplog.text

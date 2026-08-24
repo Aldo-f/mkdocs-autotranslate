@@ -1,11 +1,11 @@
-"""Unit tests for mkdocs_blog_autotranslate.core (network-free)."""
+"""Unit tests for mkdocs_autotranslate.core (network-free)."""
 
 import textwrap
 from pathlib import Path
 
 import pytest
 
-from mkdocs_blog_autotranslate.core import (
+from mkdocs_autotranslate.core import (
     fill_gaps, find_gaps, parse_post, scan_slugs, split_blocks,
 )
 

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "mkdocs-blog-autotranslate"
+name = "mkdocs-autotranslate"
 version = "0.2.0"
 description = "MkDocs plugin + CLI: detect and fill blog translation gaps between language trees via DeepL."
 readme = "README.md"
@@ -33,18 +33,18 @@ dependencies = [
 test = ["pytest>=8"]
 
 [project.entry-points."mkdocs.plugins"]
-blog-autotranslate = "mkdocs_blog_autotranslate.plugin:BlogAutotranslatePlugin"
+autotranslate = "mkdocs_autotranslate.plugin:AutotranslatePlugin"
 
 [project.scripts]
-blog-autotranslate = "mkdocs_blog_autotranslate.cli:main"
+autotranslate = "mkdocs_autotranslate.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Aldo-f/mkdocs-blog-autotranslate"
-Repository = "https://github.com/Aldo-f/mkdocs-blog-autotranslate"
-Issues = "https://github.com/Aldo-f/mkdocs-blog-autotranslate/issues"
+Homepage = "https://github.com/Aldo-f/mkdocs-autotranslate"
+Repository = "https://github.com/Aldo-f/mkdocs-autotranslate"
+Issues = "https://github.com/Aldo-f/mkdocs-autotranslate/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/mkdocs_blog_autotranslate"]
+packages = ["src/mkdocs_autotranslate"]
 
 [tool.pytest.ini_options]
 addopts = "-q"

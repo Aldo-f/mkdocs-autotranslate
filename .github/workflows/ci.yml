@@ -22,7 +22,7 @@ jobs:
         run: |
           python - <<'EOF'
           from mkdocs.plugins import get_plugins
-          assert "blog-autotranslate" in get_plugins()
+          assert "autotranslate" in get_plugins()
           print("entry point OK")
           EOF
       - run: pip install build && python -m build

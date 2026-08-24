@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from mkdocs_blog_autotranslate.cli import main
+from mkdocs_autotranslate.cli import main
 
 
 def make_post(dir_path: Path, slug: str, title="T"):
@@ -40,7 +40,7 @@ def test_cli_write_uses_translator(docs, monkeypatch, capsys):
         return translate
 
     monkeypatch.setattr(
-        "mkdocs_blog_autotranslate.cli.make_deepl_translator", fake_translator)
+        "mkdocs_autotranslate.cli.make_deepl_translator", fake_translator)
     rc = main(["--docs-dir", str(docs), "--write"])
     out = capsys.readouterr().out
     assert rc == 0

@@ -1,6 +1,6 @@
 """MkDocs plugin: report untranslated content at build time.
 
-Detection only — translation itself happens via the `blog-autotranslate` CLI
+Detection only — translation itself happens via the `autotranslate` CLI
 so machine-translated files are always human-reviewed before commit.
 """
 
@@ -18,10 +18,10 @@ from mkdocs.config import config_options as c
 
 from .core import find_gaps, scan_slugs
 
-log = logging.getLogger("mkdocs.plugins.blog_autotranslate")
+log = logging.getLogger("mkdocs.plugins.autotranslate")
 
 
-class BlogAutotranslatePlugin(BasePlugin):
+class AutotranslatePlugin(BasePlugin):
 
     config_scheme = (
         ("languages", c.ListOfItems(c.Type(str), default=["en", "nl"])),
@@ -36,7 +36,7 @@ class BlogAutotranslatePlugin(BasePlugin):
     def on_files(self, files, *, config):
         languages = [l.strip() for l in self.config["languages"] if l.strip()]
         if len(languages) < 2:
-            log.warning("[blog-autotranslate] needs >= 2 languages, got %s", languages)
+            log.warning("[autotranslate] needs >= 2 languages, got %s", languages)
             return files
 
         paths = [p for p in self.config["paths"]] or [self.config["blog_path"]]
@@ -46,15 +46,15 @@ class BlogAutotranslatePlugin(BasePlugin):
 
         if drafts:
             for src, dst, s in drafts:
-                log.info("[blog-autotranslate] skipping draft %s/%s.md", src, s)
+                log.info("[autotranslate] skipping draft %s/%s.md", src, s)
 
         if not missing:
-            log.info("[blog-autotranslate] all languages in sync (%s) paths=%s",
+            log.info("[autotranslate] all languages in sync (%s) paths=%s",
                      languages, paths)
             return files
 
         summary = ", ".join(f"{src}->{dst}: {s}.md" for src, dst, s in missing)
-        msg = f"[blog-autotranslate] {len(missing)} untranslated post(s): {summary}"
+        msg = f"[autotranslate] {len(missing)} untranslated post(s): {summary}"
         if self.config["mode"] == "strict":
             raise PluginError(msg)
         log.warning(msg)

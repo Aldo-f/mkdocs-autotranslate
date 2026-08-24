@@ -1,18 +1,19 @@
-# mkdocs-blog-autotranslate
+# mkdocs-autotranslate
 
-A MkDocs plugin + CLI that keeps a multilingual **blog** in sync across
-language trees: it detects posts that exist in one language but not another,
-and can create the missing translations via [DeepL](https://www.deepl.com/).
+A MkDocs plugin + CLI that keeps a multilingual MkDocs site in sync across
+language trees: it detects content that exists in one language but not
+another — blog posts, pages, any path you point it at — and can create the
+missing translations via [DeepL](https://www.deepl.com/).
 
-- **Plugin** (`blog-autotranslate`): at build time, reports untranslated
-  posts — optionally fails strict builds. Never touches the network.
-- **CLI** (`blog-autotranslate`): dry-run report by default; `--write`
-  creates missing translated posts for human review before commit.
+- **Plugin** (`autotranslate`): at build time, reports untranslated
+  content — optionally fails strict builds. Never touches the network.
+- **CLI** (`autotranslate`): dry-run report by default; `--write`
+  creates missing translated files for human review before commit.
 
 ## Install
 
 ```bash
-pip install mkdocs-blog-autotranslate
+pip install mkdocs-autotranslate
 ```
 
 ## Plugin usage
@@ -21,7 +22,7 @@ Add to `mkdocs.yml`:
 
 ```yaml
 plugins:
-  - blog-autotranslate:
+  - autotranslate:
       languages: [en, nl]     # directories under docs/
       blog_path: blog/posts   # post dir under each language dir
       mode: report            # report | strict (fail build on gaps)
@@ -34,10 +35,10 @@ language config; add the plugin to each (or the shared base config).
 
 ```bash
 # dry-run: shows what WOULD be created, writes nothing, needs no API key
-blog-autotranslate --docs-dir docs
+autotranslate --docs-dir docs
 
 # apply: creates missing posts via DeepL (review the git diff!)
-blog-autotranslate --docs-dir docs --write
+autotranslate --docs-dir docs --write
 ```
 
 Options:

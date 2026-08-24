@@ -42,10 +42,10 @@ jobs:
       - name: Install from PyPI and verify entry points
         run: |
           sleep 20  # allow CDN propagation
-          pip install mkdocs-blog-autotranslate
+          pip install mkdocs-autotranslate
           python - <<'EOF'
           from mkdocs.plugins import get_plugins
-          assert "blog-autotranslate" in get_plugins(), "plugin not registered"
+          assert "autotranslate" in get_plugins(), "plugin not registered"
           print("PyPI package installs and registers OK")
           EOF
-          blog-autotranslate --help > /dev/null && echo "CLI OK"
+          autotranslate --help > /dev/null && echo "CLI OK"

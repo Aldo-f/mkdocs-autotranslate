@@ -1,6 +1,6 @@
-# Plan: `mkdocs-blog-autotranslate` — a real MkDocs plugin
+# Plan: `mkdocs-autotranslate` — a real MkDocs plugin
 
-**Date**: 2026-08-24 · **Source feature**: specs/003-blog-autotranslate in
+**Date**: 2026-08-24 · **Source feature**: specs/003-autotranslate in
 `06-apps-aldo-f-github-io` · **Goal**: publish the existing blog translation
 gap-filler as an installable, testable MkDocs plugin.
 
@@ -21,25 +21,25 @@ Two surfaces, one core:
 | Surface | Mechanism | Behaviour |
 |---|---|---|
 | **MkDocs plugin** | entry point `mkdocs.plugins`, `BasePlugin` | at build time: compare post slug-sets across language dirs; `report` mode logs gaps, `strict` mode fails the build. Never calls DeepL during build. |
-| **CLI** | console script `blog-autotranslate` | dry-run report / `--write` to translate missing posts via DeepL (author-run, reviewed via git diff). |
+| **CLI** | console script `autotranslate` | dry-run report / `--write` to translate missing posts via DeepL (author-run, reviewed via git diff). |
 
 Core module is shared: plugin = *detection*, CLI = *remediation*.
 Rationale: auto-writing files during CI builds is exactly what FR-8's
 dry-run-first philosophy forbids without human review.
 
-## 2. Repo layout (new repo: `~/dev/mkdocs-blog-autotranslate`)
+## 2. Repo layout (new repo: `~/dev/mkdocs-autotranslate`)
 
 ```
-mkdocs-blog-autotranslate/
+mkdocs-autotranslate/
 ├── pyproject.toml              # hatchling backend, entry points:
 │                               #   mkdocs.plugins → blog_autotranslate
-│                               #   console_scripts → blog-autotranslate
+│                               #   console_scripts → autotranslate
 ├── README.md                   # install, config reference, DeepL key setup
 ├── LICENSE                     # MIT
 ├── .github/workflows/ci.yml    # pytest on 3.11/3.12 + build check
-├── src/mkdocs_blog_autotranslate/
+├── src/mkdocs_autotranslate/
 │   ├── __init__.py             # version
-│   ├── plugin.py               # BlogAutotranslatePlugin(BasePlugin)
+│   ├── plugin.py               # AutotranslatePlugin(BasePlugin)
 │   ├── cli.py                  # argparse main()
 │   ├── core.py                 # fill_gaps/parse_post/split_blocks (ported)
 │   └── deepl.py                # make_deepl_translator() (ported)
@@ -53,14 +53,14 @@ mkdocs-blog-autotranslate/
 
 ```yaml
 plugins:
-  - blog-autotranslate:
+  - autotranslate:
       languages: [en, nl]       # language dirs under docs/
       blog_path: blog/posts     # subdir compared per language
       mode: report              # report | strict (fail build on gaps)
 ```
 
 Events used: `on_files(files, *, config)` — read-only inspection of the file
-list; logs `[blog-autotranslate] N untranslated post(s): en→nl foo.md …`.
+list; logs `[autotranslate] N untranslated post(s): en→nl foo.md …`.
 `strict` raises `PluginError`.
 
 ## 4. Porting rules
@@ -86,7 +86,7 @@ list; logs `[blog-autotranslate] N untranslated post(s): en→nl foo.md …`.
 
 ## 6. Publishing steps
 
-1. GitHub repo `Aldo-f/mkdocs-blog-autotranslate`; NOT a submodule of ~/dev
+1. GitHub repo `Aldo-f/mkdocs-autotranslate`; NOT a submodule of ~/dev
    (it's a standalone distributable; link it from the hub's README instead).
 2. CI: pytest matrix + `python -m build` sanity.
 3. PyPI: check name availability; publish via trusted publishing (OIDC);

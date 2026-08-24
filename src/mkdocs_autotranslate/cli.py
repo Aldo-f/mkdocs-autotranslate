@@ -15,7 +15,7 @@ from .core import fill_gaps, make_deepl_translator
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
-        prog="blog-autotranslate",
+        prog="autotranslate",
         description="Translate missing blog posts between language trees (DeepL).",
     )
     p.add_argument("--docs-dir", required=True, type=Path,
