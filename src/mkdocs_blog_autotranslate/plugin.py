@@ -1,4 +1,4 @@
-"""MkDocs plugin: report untranslated blog posts at build time.
+"""MkDocs plugin: report untranslated content at build time.
 
 Detection only — translation itself happens via the `blog-autotranslate` CLI
 so machine-translated files are always human-reviewed before commit.
@@ -25,7 +25,11 @@ class BlogAutotranslatePlugin(BasePlugin):
 
     config_scheme = (
         ("languages", c.ListOfItems(c.Type(str), default=["en", "nl"])),
+        # paths: dirs/files/globs under each language dir to compare.
+        # Empty -> fall back to blog_path (backward compatible).
+        ("paths", c.ListOfItems(c.Type(str), default=[])),
         ("blog_path", c.Type(str, default="blog/posts")),
+        ("exclude", c.ListOfItems(c.Type(str), default=[])),
         ("mode", c.Choice(("report", "strict"), default="report")),
     )
 
@@ -35,16 +39,18 @@ class BlogAutotranslatePlugin(BasePlugin):
             log.warning("[blog-autotranslate] needs >= 2 languages, got %s", languages)
             return files
 
+        paths = [p for p in self.config["paths"]] or [self.config["blog_path"]]
         docs_dir = config["docs_dir"]
-        slugs = scan_slugs(docs_dir, languages, self.config["blog_path"])
+        slugs = scan_slugs(docs_dir, languages, paths, self.config["exclude"])
         missing, drafts = find_gaps(slugs, languages)
 
         if drafts:
             for src, dst, s in drafts:
-                log.info("[blog-autotranslate] skipping draft %s/%s", src, s)
+                log.info("[blog-autotranslate] skipping draft %s/%s.md", src, s)
 
         if not missing:
-            log.info("[blog-autotranslate] all languages in sync (%s)", languages)
+            log.info("[blog-autotranslate] all languages in sync (%s) paths=%s",
+                     languages, paths)
             return files
 
         summary = ", ".join(f"{src}->{dst}: {s}.md" for src, dst, s in missing)

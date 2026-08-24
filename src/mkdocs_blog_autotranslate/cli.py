@@ -22,14 +22,21 @@ def main(argv: list[str] | None = None) -> int:
                    help="Path to the MkDocs docs/ directory")
     p.add_argument("--languages", nargs="+", default=["en", "nl"],
                    help="Language directories under docs-dir (default: en nl)")
+    p.add_argument("--paths", nargs="+", default=None,
+                   help="Dirs/files/globs under each language dir to compare "
+                        "(default: --blog-path)")
     p.add_argument("--blog-path", default="blog/posts",
-                   help="Post directory under each language dir (default: blog/posts)")
+                   help="Legacy single-path option (default: blog/posts); "
+                        "ignored when --paths is given")
+    p.add_argument("--exclude", nargs="+", default=[],
+                   help="fnmatch patterns of language-relative paths to skip")
     p.add_argument("--write", action="store_true",
                    help="Actually create missing translations (default: dry-run)")
     args = p.parse_args(argv)
 
     tr = make_deepl_translator() if args.write else None
     rep = fill_gaps(args.docs_dir, languages=args.languages, blog_path=args.blog_path,
+                    paths=args.paths, exclude=args.exclude,
                     translator=tr, write=args.write)
 
     print(f"{'WROTE' if args.write else 'WOULD CREATE'} {len(rep.created)} post(s):")

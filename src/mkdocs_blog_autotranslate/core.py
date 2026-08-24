@@ -40,9 +40,24 @@ FM_RE = re.compile(r"^---\r?\n(.*?)\r?\n---\r?\n?(.*)$", re.DOTALL)
 
 
 def parse_post(path: Path):
-    m = FM_RE.match(path.read_text(encoding="utf-8"))
-    if not m:
+    """Return (meta, body). Files without YAML front matter get a minimal
+    meta (title derived from first heading) so plain pages are still
+    translated; only truly empty files yield (None, None)."""
+    text = path.read_text(encoding="utf-8")
+    if not text.strip():
         return None, None
+    m = FM_RE.match(text)
+    if not m:
+        # derive a fallback title from the first markdown heading / line
+        title = ""
+        for line in text.splitlines():
+            s = line.strip()
+            if s:
+                hm = re.match(r"^#{1,6}\s+(.*)$", s)
+                title = hm.group(1).strip() if hm else s
+                break
+        return {"title": title or path.stem, "categories": [],
+                "date": "", "no_frontmatter": True}, text.strip("\n")
     fm_raw, body = m.group(1), m.group(2)
     meta: dict = {"categories": []}
     in_cats = False
@@ -114,21 +129,53 @@ def split_blocks(text: str) -> list[tuple[str, bool]]:
     return out
 
 
-def posts_dir(docs_dir: Path, lang: str, blog_path: str) -> Path:
-    return Path(docs_dir) / lang / blog_path
+def _slug_key(rel: Path) -> str:
+    """Unique key for a doc: path relative to the language dir, POSIX-style,
+    without the .md extension (e.g. 'blog/posts/my-post', 'about')."""
+    return rel.with_suffix("").as_posix()
 
 
-def scan_slugs(docs_dir: Path, languages, blog_path: str) -> dict[str, dict[str, dict]]:
-    """slug -> {meta, body} per language."""
+def iter_docs(docs_dir: Path, lang: str, paths, exclude=()) -> list[Path]:
+    """All .md files under docs_dir/lang matching any of `paths`
+    (dirs expand recursively, globs allowed), minus `exclude` fnmatch patterns
+    (matched against the language-relative posix path)."""
+    base = Path(docs_dir) / lang
+    hits: set[Path] = set()
+    for spec in paths:
+        spec = str(spec)
+        full = base / spec
+        if any(ch in spec for ch in "*?["):
+            hits.update(p for p in base.glob(spec) if p.suffix == ".md")
+        elif full.is_dir():
+            hits.update(p for p in full.rglob("*.md"))
+        elif full.is_file():
+            hits.add(full)
+    import fnmatch
+    out = []
+    for p in sorted(hits):
+        try:
+            rel_posix = p.relative_to(base).as_posix()
+        except ValueError:
+            continue  # glob escaped the base (e.g. absolute-ish pattern)
+        rel_key = _slug_key(p.relative_to(base))
+        if any(fnmatch.fnmatch(rel_posix, pat) or fnmatch.fnmatch(rel_key, pat)
+               for pat in exclude):
+            continue
+        out.append(p)
+    return out
+
+
+def scan_slugs(docs_dir: Path, languages, paths, exclude=()) -> dict[str, dict[str, dict]]:
+    """slug-key -> {meta, body, rel} per language."""
     slugs: dict[str, dict[str, dict]] = {}
     for lang in languages:
-        d = posts_dir(docs_dir, lang, blog_path)
         slugs[lang] = {}
-        for p in sorted(d.glob("*.md")) if d.is_dir() else []:
+        for p in iter_docs(docs_dir, lang, paths, exclude):
             meta, body = parse_post(p)
             if meta is None:
                 continue
-            slugs[lang][p.stem] = {"meta": meta, "body": body}
+            key = _slug_key(p.relative_to(Path(docs_dir) / lang))
+            slugs[lang][key] = {"meta": meta, "body": body, "rel": p.relative_to(Path(docs_dir) / lang)}
     return slugs
 
 
@@ -197,11 +244,19 @@ def make_deepl_translator(key: str | None = None):
 # gap filling
 # --------------------------------------------------------------------------
 
+def _norm_paths(paths, blog_path: str) -> list[str]:
+    """Normalise the paths option; blog_path kept for backward compat."""
+    if paths:
+        return [str(p) for p in paths]
+    return [blog_path]
+
+
 def fill_gaps(docs_dir: Path, *, languages=("en", "nl"), blog_path: str = "blog/posts",
-              translator=None, write: bool = False) -> Report:
+              paths=None, exclude=(), translator=None, write: bool = False) -> Report:
     tr = translator or (lambda texts, source, target: texts)
     rep = Report()
-    slugs = scan_slugs(docs_dir, languages, blog_path)
+    specs = _norm_paths(paths, blog_path)
+    slugs = scan_slugs(docs_dir, languages, specs, exclude)
 
     for src, dst in zip(languages, languages[1:] + languages[:1]):
         cards = slugs[src]
@@ -237,18 +292,30 @@ def fill_gaps(docs_dir: Path, *, languages=("en", "nl"), blog_path: str = "blog/
             cats_yaml = ""
             if meta["categories"]:
                 cats_yaml = "".join(f"\n  - {c}" for c in meta["categories"])
-            text = (
-                "---\n"
-                f"title: \"{title_t}\"\n"
-                f"date: {meta.get('date', '')}\n"
-                f"categories:{cats_yaml}\n"
-                "---\n\n"
-                f"{new_body.rstrip()}\n"
-                + PROVENANCE.format(source=f"{src}/{s}", direction=f"{src}->{dst}",
-                                    date=datetime.date.today().isoformat())
-            )
-            out = posts_dir(docs_dir, dst, blog_path)
-            out.mkdir(parents=True, exist_ok=True)
-            (out / f"{s}.md").write_text(text, encoding="utf-8")
+            if meta.get("no_frontmatter"):
+                # source had no front matter: emit plain translated markdown
+                text = (
+                    f"{new_body.rstrip()}\n"
+                    + PROVENANCE.format(source=f"{src}/{s}", direction=f"{src}->{dst}",
+                                        date=datetime.date.today().isoformat())
+                )
+            else:
+                text = (
+                    "---\n"
+                    f"title: \"{title_t}\"\n"
+                    f"date: {meta.get('date', '')}\n"
+                    f"categories:{cats_yaml}\n"
+                    "---\n\n"
+                    f"{new_body.rstrip()}\n"
+                    + PROVENANCE.format(source=f"{src}/{s}", direction=f"{src}->{dst}",
+                                        date=datetime.date.today().isoformat())
+                )
+            out = posts_dir_for(docs_dir, dst, card["rel"])
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(text, encoding="utf-8")
             rep.created.append((src, dst, s))
     return rep
+
+
+def posts_dir_for(docs_dir: Path, lang: str, rel) -> Path:
+    return Path(docs_dir) / lang / rel

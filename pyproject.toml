@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mkdocs-blog-autotranslate"
-version = "0.1.0"
+version = "0.2.0"
 description = "MkDocs plugin + CLI: detect and fill blog translation gaps between language trees via DeepL."
 readme = "README.md"
 requires-python = ">=3.10"

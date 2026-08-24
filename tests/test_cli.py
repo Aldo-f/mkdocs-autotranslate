@@ -25,7 +25,7 @@ def test_cli_dry_run_no_key_needed(docs, tmp_path, capsys):
     out = capsys.readouterr().out
     assert rc == 0
     assert "WOULD CREATE 1 post(s)" in out
-    assert "en -> nl  a" in out
+    assert "en -> nl  blog/posts/a" in out
     assert not (docs / "nl").exists()          # nothing written
 
 
@@ -57,7 +57,7 @@ def test_cli_custom_languages_and_path(docs, capsys):
                "--blog-path", "articles"])
     out = capsys.readouterr().out
     assert rc == 0
-    assert "fr -> de  z" in out
+    assert "fr -> de  articles/z" in out
 
 
 def test_cli_in_sync_message(docs, capsys):

@@ -58,7 +58,7 @@ def test_report_mode_logs_warning_not_raise(docs, caplog):
         result = p.on_files(fake_files(), config=cfg)
     assert isinstance(result, Files)          # build continues
     assert "1 untranslated post(s)" in caplog.text
-    assert "en->nl: only-en.md" in caplog.text
+    assert "en->nl: blog/posts/only-en.md" in caplog.text
 
 
 def test_strict_mode_raises(docs):
@@ -80,7 +80,7 @@ def test_drafts_skipped_and_logged(docs, caplog):
     with caplog.at_level(logging.INFO, logger="mkdocs.plugins.blog_autotranslate"):
         result = p.on_files(fake_files(), config=cfg)
     assert isinstance(result, Files)
-    assert "skipping draft en/wip-draft" in caplog.text
+    assert "skipping draft en/blog/posts/wip-draft.md" in caplog.text
 
 
 def test_single_language_warns_and_noop(docs, caplog):
