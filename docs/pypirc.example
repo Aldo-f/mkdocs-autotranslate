@@ -1,0 +1,11 @@
+Placeholders for the user's PyPI .pypirc template. Real values go in
+~/.pypirc (chmod 600) — never commit real tokens.
+
+[distutils]
+  index-servers =
+    pypi
+
+[pypi]
+  repository = https://upload.pypi.org/legacy/
+  username = __token__
+  password = <user-scoped or project-scoped token>
