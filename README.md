@@ -24,7 +24,7 @@ Add to `mkdocs.yml`:
 plugins:
   - autotranslate:
       languages: [en, nl]     # directories under docs/
-      blog_path: blog/posts   # post dir under each language dir
+      paths: [blog/posts]     # dirs/files/globs under each language dir
       mode: report            # report | strict (fail build on gaps)
 ```
 
@@ -47,7 +47,7 @@ Options:
 |---|---|---|
 | `--docs-dir` | (required) | Path to your `docs/` directory |
 | `--languages` | `en nl` | Language subdirectories to compare |
-| `--blog-path` | `blog/posts` | Posts directory under each language |
+| `--paths` | `blog/posts` | Dirs/files/globs under each language dir |
 | `--write` | off | Create files instead of reporting only |
 
 ## DeepL key

@@ -26,9 +26,8 @@ class AutotranslatePlugin(BasePlugin):
     config_scheme = (
         ("languages", c.ListOfItems(c.Type(str), default=["en", "nl"])),
         # paths: dirs/files/globs under each language dir to compare.
-        # Empty -> fall back to blog_path (backward compatible).
-        ("paths", c.ListOfItems(c.Type(str), default=[])),
-        ("blog_path", c.Type(str, default="blog/posts")),
+        ("paths", c.ListOfItems(c.Type(str),
+                                default=["blog/posts"])),
         ("exclude", c.ListOfItems(c.Type(str), default=[])),
         ("mode", c.Choice(("report", "strict"), default="report")),
     )
@@ -39,7 +38,7 @@ class AutotranslatePlugin(BasePlugin):
             log.warning("[autotranslate] needs >= 2 languages, got %s", languages)
             return files
 
-        paths = [p for p in self.config["paths"]] or [self.config["blog_path"]]
+        paths = list(self.config["paths"])
         docs_dir = config["docs_dir"]
         slugs = scan_slugs(docs_dir, languages, paths, self.config["exclude"])
         missing, drafts = find_gaps(slugs, languages)

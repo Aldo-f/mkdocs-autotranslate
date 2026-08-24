@@ -54,7 +54,7 @@ def test_cli_write_uses_translator(docs, monkeypatch, capsys):
 def test_cli_custom_languages_and_path(docs, capsys):
     make_post(docs / "fr" / "articles", "z")
     rc = main(["--docs-dir", str(docs), "--languages", "fr", "de",
-               "--blog-path", "articles"])
+               "--paths", "articles"])
     out = capsys.readouterr().out
     assert rc == 0
     assert "fr -> de  articles/z" in out

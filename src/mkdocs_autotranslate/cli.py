@@ -22,12 +22,10 @@ def main(argv: list[str] | None = None) -> int:
                    help="Path to the MkDocs docs/ directory")
     p.add_argument("--languages", nargs="+", default=["en", "nl"],
                    help="Language directories under docs-dir (default: en nl)")
-    p.add_argument("--paths", nargs="+", default=None,
+    p.add_argument("--paths", nargs="+",
+                   default=["blog/posts"],
                    help="Dirs/files/globs under each language dir to compare "
-                        "(default: --blog-path)")
-    p.add_argument("--blog-path", default="blog/posts",
-                   help="Legacy single-path option (default: blog/posts); "
-                        "ignored when --paths is given")
+                        "(default: blog/posts)")
     p.add_argument("--exclude", nargs="+", default=[],
                    help="fnmatch patterns of language-relative paths to skip")
     p.add_argument("--write", action="store_true",
@@ -35,7 +33,7 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
 
     tr = make_deepl_translator() if args.write else None
-    rep = fill_gaps(args.docs_dir, languages=args.languages, blog_path=args.blog_path,
+    rep = fill_gaps(args.docs_dir, languages=args.languages,
                     paths=args.paths, exclude=args.exclude,
                     translator=tr, write=args.write)
 

@@ -244,18 +244,12 @@ def make_deepl_translator(key: str | None = None):
 # gap filling
 # --------------------------------------------------------------------------
 
-def _norm_paths(paths, blog_path: str) -> list[str]:
-    """Normalise the paths option; blog_path kept for backward compat."""
-    if paths:
-        return [str(p) for p in paths]
-    return [blog_path]
-
-
-def fill_gaps(docs_dir: Path, *, languages=("en", "nl"), blog_path: str = "blog/posts",
-              paths=None, exclude=(), translator=None, write: bool = False) -> Report:
+def fill_gaps(docs_dir: Path, *, languages=("en", "nl"),
+              paths=("blog/posts",), exclude=(),
+              translator=None, write: bool = False) -> Report:
     tr = translator or (lambda texts, source, target: texts)
     rep = Report()
-    specs = _norm_paths(paths, blog_path)
+    specs = [str(p) for p in paths]
     slugs = scan_slugs(docs_dir, languages, specs, exclude)
 
     for src, dst in zip(languages, languages[1:] + languages[:1]):

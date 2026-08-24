@@ -55,7 +55,7 @@ mkdocs-autotranslate/
 plugins:
   - autotranslate:
       languages: [en, nl]       # language dirs under docs/
-      blog_path: blog/posts     # subdir compared per language
+      (paths option replaces legacy blog_path)
       mode: report              # report | strict (fail build on gaps)
 ```
 
